@@ -55,7 +55,7 @@ namespace EvroDev.LevelEditorTool.Tabs
             uvScale = EditorGUILayout.FloatField("UV Scale", uvScale);
             surfaceData = EditorGUILayout.ObjectField("Impact Properties", surfaceData, typeof(SurfaceData), false) as SurfaceData;
             colliderDepth = EditorGUILayout.FloatField("Collider Depth", colliderDepth);
-            selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "Floor/Ceiling", "Wall", "Ramp", "Bevel Edge", "Bevel Corner" });
+            selectedTab = GUILayout.Toolbar(selectedTab, new string[] { "Floor/Ceiling", "Wall"/*, "Ramp", "Bevel Edge", "Bevel Corner"*/ });
 
             allowDrag = GUILayout.Toggle(allowDrag, "Toggle Object Dragging (breaks selecting while enabled)");
             //GUILayout.Label(constructionStage.ToString());
