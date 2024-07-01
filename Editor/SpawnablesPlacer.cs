@@ -25,6 +25,7 @@ namespace EvroDev.LevelEditorTool.Tabs
         private Vector2 matScrollPos;
         private bool showRecentsWindow;
         private SerializedObject serializedObject;
+        private GameObject rotatingSpawnable;
 
         public SpawnablesPlacerTab(LevelEditorTool currentEditor) : base(currentEditor)
         {
@@ -34,14 +35,19 @@ namespace EvroDev.LevelEditorTool.Tabs
 
         public override void OnClickDown(Vector2 mousePosition)
         {
-            dragStartPoint = RaycastTools.GetWorldPosition(mousePosition, false);
             dragStartNormal = RaycastTools.GetNormalOfRaycast(mousePosition);
+            dragStartPoint = RaycastTools.GetWorldPosition(mousePosition, false) - dragStartNormal * (crate.spawnableCrateReference.Crate.ColliderBounds.center.y - crate.spawnableCrateReference.Crate.ColliderBounds.extents.y);
 
-            tempPreviewer = new GameObject("Temp Previewer").AddComponent<SpawnablePlacerTempPreviewer>();
+            //tempPreviewer = new GameObject("Temp Previewer").AddComponent<SpawnablePlacerTempPreviewer>();
 
-            tempPreviewer.position = dragStartPoint;
+            GameObject placer = new GameObject("TempName");
+            placer.transform.position = dragStartPoint;
+        
+            placer.AddComponent<CrateSpawner>().spawnableCrateReference = new SpawnableCrateReference(crate.spawnableCrateReference.Barcode);
 
-            tempPreviewer.mesh = crate.spawnableCrateReference.Crate.PreviewMesh.EditorAsset;
+            rotatingSpawnable = placer;
+
+            Undo.RegisterCreatedObjectUndo(placer, "Created Placer");
         }
 
         public override void OnClickHold(Vector2 mousePosition)
@@ -50,17 +56,17 @@ namespace EvroDev.LevelEditorTool.Tabs
 
             if (useSnapping) rot = rot.Round(rotationSnapping);
 
-            tempPreviewer.rotation = rot;
+            rotatingSpawnable.transform.rotation = rot;
         }
 
         public override void OnClickUp(Vector2 mousePosition)
         {
-            Quaternion rot = Quaternion.LookRotation((dragStartPoint - RaycastTools.GetPlaneIntersectionWithRay(mousePosition, dragStartNormal, dragStartPoint, false)) * -1, dragStartNormal);
+            //Quaternion rot = Quaternion.LookRotation((dragStartPoint - RaycastTools.GetPlaneIntersectionWithRay(mousePosition, dragStartNormal, dragStartPoint, false)) * -1, dragStartNormal);
+            //
+            //if (useSnapping) rot = rot.Round(rotationSnapping);
 
-            if (useSnapping) rot = rot.Round(rotationSnapping);
-
-            PlaceSpawnable(dragStartPoint, rot);
-            DestroyImmediate(tempPreviewer.gameObject);
+            //PlaceSpawnable(dragStartPoint, rot);
+            //DestroyImmediate(tempPreviewer.gameObject);
         }
 
         public override void OnEnable()

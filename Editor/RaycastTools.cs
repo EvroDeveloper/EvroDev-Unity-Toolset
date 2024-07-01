@@ -42,6 +42,22 @@ namespace EvroDev.LevelEditorTool.Tools
 
         }
 
+        public static Vector3 GetWorldPositionBoxCast(Bounds bounds, Vector2 mousePosition, bool shouldRound = true)
+        {
+            // Convert mousePosition to world position
+            // Remember to implement snapping logic here if needed
+            Ray ray = HandleUtility.GUIPointToWorldRay(mousePosition);
+            if (Physics.BoxCast(ray.origin, bounds.extents, ray.direction, out RaycastHit hit, Quaternion.identity, 100, LayerMask.GetMask(new string[] { "Default", "StaticLW" }), QueryTriggerInteraction.Ignore))
+            {
+                // Snap to hit object or adjust based on your snapping logic
+                if (shouldRound) return hit.point.RoundToNearest(snapValue);
+                else return hit.point;
+            }
+            // Fallback to a default plane if no object was hit
+            return Vector3.zero; //GetPlaneIntersectionWithRay(mousePosition);
+
+        }
+
         public static Vector3 GetPlaneIntersectionWithRay(Vector2 mousePosition, Vector3 planeUp, Vector3 planePoint, bool round = true)
         {
             // Convert the mouse position to a ray

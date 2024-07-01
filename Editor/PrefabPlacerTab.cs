@@ -1,4 +1,5 @@
 ﻿using EvroDev.LevelEditorTool.Tools;
+using SLZ.Marrow.Warehouse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace EvroDev.LevelEditorTool.Tabs
 {
@@ -18,6 +20,7 @@ namespace EvroDev.LevelEditorTool.Tabs
         private SpawnablePlacerTempPreviewer tempPreviewer;
         private bool useSnapping;
         private Vector3 planeNormal;
+        private Transform rotatingTransform;
 
         private List<GameObject> recentsList = new List<GameObject>();
         private bool showRecentsWindow;
@@ -34,14 +37,25 @@ namespace EvroDev.LevelEditorTool.Tabs
             if(tempPreviewer != null)
                 DestroyImmediate(tempPreviewer.gameObject);
 
-            dragStartPoint = RaycastTools.GetWorldPosition(mousePosition, false);
+            Bounds prefabBounds = GetObjectBounds(prefabToPlace);
+
             dragStartNormal = RaycastTools.GetNormalOfRaycast(mousePosition);
+            dragStartPoint = RaycastTools.GetWorldPosition(mousePosition, false) - dragStartNormal.normalized * (prefabBounds.center.y - prefabBounds.extents.y);
+            
+            PrefabAssetType prefabType = PrefabUtility.GetPrefabAssetType(prefabToPlace);
 
-            tempPreviewer = new GameObject("Temp Previewer").AddComponent<SpawnablePlacerTempPreviewer>();
-            tempPreviewer.position = dragStartPoint;
+            GameObject newObject;
 
-            tempPreviewer.meshPosOffset = prefabToPlace.transform.position - prefabToPlace.GetComponentInChildren<MeshFilter>().transform.position;
-            tempPreviewer.FillMeshOffsetsFromObject(prefabToPlace);
+            if (prefabType == PrefabAssetType.Regular || prefabType == PrefabAssetType.Variant)
+                newObject = PrefabUtility.InstantiatePrefab(prefabToPlace) as GameObject;
+            else
+                newObject = Instantiate(prefabToPlace);
+
+            newObject.transform.position = dragStartPoint;
+
+            rotatingTransform = newObject.transform;
+
+            Undo.RegisterCreatedObjectUndo(newObject, "Instatiate Prefab");
         }
 
         public override void OnClickHold(Vector2 mousePosition)
@@ -50,20 +64,35 @@ namespace EvroDev.LevelEditorTool.Tabs
 
             if (useSnapping) rot = rot.Round(rotationSnapping);
 
-            tempPreviewer.rotation = rot;
+            rotatingTransform.rotation = rot;
         }
 
         public override void OnClickUp(Vector2 mousePosition)
         {
-            var lastPos = RaycastTools.GetPlaneIntersectionWithRay(mousePosition, dragStartNormal, dragStartPoint, false);
-            Quaternion rot = Quaternion.LookRotation(Vector3.up, dragStartNormal);
-            if (lastPos != dragStartPoint)
-                rot = Quaternion.LookRotation((dragStartPoint - RaycastTools.GetPlaneIntersectionWithRay(mousePosition, dragStartNormal, dragStartPoint, false)) * -1, dragStartNormal);
-           
-            if (useSnapping) rot = rot.Round(rotationSnapping);
+            //var lastPos = RaycastTools.GetPlaneIntersectionWithRay(mousePosition, dragStartNormal, dragStartPoint, false);
+            //Quaternion rot = Quaternion.LookRotation(Vector3.up, dragStartNormal);
+            //if (lastPos != dragStartPoint)
+            //    rot = Quaternion.LookRotation((dragStartPoint - RaycastTools.GetPlaneIntersectionWithRay(mousePosition, dragStartNormal, dragStartPoint, false)) * -1, dragStartNormal);
+            //
+            //if (useSnapping) rot = rot.Round(rotationSnapping);
 
-            PlacePrefab(dragStartPoint, rot);
-            DestroyImmediate(tempPreviewer.gameObject);
+            //PlacePrefab(dragStartPoint, rot);
+            //DestroyImmediate(tempPreviewer.gameObject);
+
+            rotatingTransform = null;
+        }
+
+        Bounds GetObjectBounds(GameObject rootObject)
+        {
+            Bounds bounds = new Bounds(rootObject.transform.position, Vector3.zero);
+
+            Renderer[] renderers = rootObject.GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in renderers)
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+
+            return bounds;
         }
 
         public override void OnEnable()
