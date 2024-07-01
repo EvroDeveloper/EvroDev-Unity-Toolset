@@ -1,0 +1,22 @@
+{
+  "name": "com.evrodev.toolset.sdk.extended",
+  "version": "0.1.0",
+  "displayName": "EvroDev Level Editor Tool",
+  "description": "EvroDev's Level Editor Tool for use with the Marrow Extended SDK",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.addressables": "1.21.12"
+  },
+  "keywords": [
+    "evro",
+    "evrodev",
+    "leveleditortool"
+  ],
+  "author": {
+    "name": "EvroDev",
+    "email": "evro@evrodev.com",
+    "url": "https://evrodev.com"
+  },
+  "unityRelease": "16f1",
+  "hideInEditor": false
+}
